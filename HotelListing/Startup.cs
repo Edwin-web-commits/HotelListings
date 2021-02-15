@@ -1,7 +1,9 @@
+using HotelListing.Data;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -27,7 +29,10 @@ namespace HotelListing
         public void ConfigureServices(IServiceCollection services)
         {
 
-            services.AddControllers();
+                services.AddDbContext<DatabaseContext>(options =>
+
+                     options.UseSqlServer(Configuration.GetConnectionString("sqlConnection"))
+                );
 
             //Cors enable us to restrict other unknown consumers from using our Api resources
             //Adding Cors policy.In this case We are allowing anyone(builder.AllowAnyOrigin) to use the Api resources
@@ -40,6 +45,8 @@ namespace HotelListing
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "HotelListing", Version = "v1" });
             });
+
+            services.AddControllers();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline...
