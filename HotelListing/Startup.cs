@@ -3,6 +3,7 @@ using HotelListing.Data;
 using HotelListing.IRepository;
 using HotelListing.Repository;
 using HotelListing.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -13,10 +14,12 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace HotelListing
@@ -40,11 +43,13 @@ namespace HotelListing
                 );
 
             //configuring Identity core framework and Authentication
+
             services.AddAuthentication();
             services.ConfigureIdentity(); //This method ConfigureIdentity() is in the ServiceExtentions.cs ,thats where the Identity Framework is configured
            
             services.ConfigureJWT(Configuration); // configuring JWT. The method ConfigureJWT() is in the ServiceExtensions.cs class
 
+          
             //Cors enable us to restrict other unknown consumers from using our Api resources
             //Adding Cors policy.In this case We are allowing anyone(builder.AllowAnyOrigin) to use the Api resources
             services.AddCors( o => {
@@ -85,7 +90,12 @@ namespace HotelListing
 
             app.UseRouting();
 
+            app.UseAuthentication();
             app.UseAuthorization();
+           
+
+
+
 
             app.UseEndpoints(endpoints =>
             {
