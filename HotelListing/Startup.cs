@@ -2,9 +2,11 @@ using HotelListing.Configurations;
 using HotelListing.Data;
 using HotelListing.IRepository;
 using HotelListing.Repository;
+using HotelListing.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -37,6 +39,12 @@ namespace HotelListing
                      options.UseSqlServer(Configuration.GetConnectionString("sqlConnection"))
                 );
 
+            //configuring Identity core framework and Authentication
+            services.AddAuthentication();
+            services.ConfigureIdentity(); //This method ConfigureIdentity() is in the ServiceExtentions.cs ,thats where the Identity Framework is configured
+           
+            services.ConfigureJWT(Configuration); // configuring JWT. The method ConfigureJWT() is in the ServiceExtensions.cs class
+
             //Cors enable us to restrict other unknown consumers from using our Api resources
             //Adding Cors policy.In this case We are allowing anyone(builder.AllowAnyOrigin) to use the Api resources
             services.AddCors( o => {
@@ -48,6 +56,8 @@ namespace HotelListing
             services.AddAutoMapper(typeof(MapperInitializer)); //configurating AutoMapper 
 
             services.AddTransient<IUnitOfWork, UnitOfWork>(); //AddTransient means a new instance of IUnitOfWork will be created whenever it is needed
+
+            services.AddScoped<IAuthManager, AuthManager>();
 
             services.AddSwaggerGen(c =>
             {
