@@ -31,19 +31,13 @@ namespace HotelListing.Controllers
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> GetHotels()
+        public async Task<IActionResult> GetHotels([FromQuery] RequestParams requestParams)
         {
-            try
-            {
-                var hotels = await _unitOfWork.Hotels.GetAll();
+            
+                var hotels = await _unitOfWork.Hotels.GetPagedList(requestParams);
                 var results = _mapper.Map<IList<HotelDTO>>(hotels);
                 return Ok(results);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Something Went Wrong In The {nameof(GetHotels)}");
-                return StatusCode(500, "Internal Server Error.Please Try Again Later");
-            }
+            
 
         }
 
@@ -54,18 +48,12 @@ namespace HotelListing.Controllers
 
         public async Task<IActionResult> GetHotel(int id)
         {
-            try
-            {
+            
                 var hotel = await _unitOfWork.Hotels.Get(op => op.Id == id, new List<string> { "Country" });
                 var result = _mapper.Map<HotelDTO>(hotel);
                 return Ok(result);
 
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Something Went Wrong In The {nameof(GetHotel)}");
-                return StatusCode(500, "Internal Server Error.Please Try Again Later");
-            }
+           
 
         }
 
@@ -82,20 +70,14 @@ namespace HotelListing.Controllers
                 _logger.LogError($"Invalid Post Request In {nameof(CreateHotel)}");
                 return BadRequest(ModelState);
             }
-            try
-            {
+            
                 var hotel = _mapper.Map<Hotel>(hotelDTO);
                 await _unitOfWork.Hotels.Insert(hotel);
                 await _unitOfWork.Save();  //hotel will be given an aoutomatic Id and get saved
 
                 return CreatedAtRoute("GetHotel", new { id = hotel.Id }, hotel);
 
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Something Went Wrong In The {nameof(CreateHotel)}");
-                return StatusCode(500, "Internal Server Error.Please Try Again Later");
-            }
+           
         }
 
         [Authorize]
@@ -111,8 +93,7 @@ namespace HotelListing.Controllers
                 _logger.LogError($"Invalid UPDATE attempt In {nameof(UpdateHotel)}");
                 return BadRequest();
             }
-            try
-            {
+            
                 var hotel = await _unitOfWork.Hotels.Get(q => q.Id == id); //get a Hotel with an id that is equivalent to the id that come throught as parameter
                 if (hotel == null)
                 {
@@ -125,12 +106,7 @@ namespace HotelListing.Controllers
                 await _unitOfWork.Save();
 
                 return NoContent();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Something Went Wrong In The {nameof(UpdateHotel)}");
-                return StatusCode(500, "Internal Server Error.Please Try Again Later");
-            }
+            
         }
 
         [Authorize]
@@ -147,8 +123,7 @@ namespace HotelListing.Controllers
                 return BadRequest(ModelState);
             }
 
-            try
-            {
+            
                 var hotel = await _unitOfWork.Hotels.Get(q => q.Id == id);
 
                 if (hotel == null)
@@ -163,12 +138,7 @@ namespace HotelListing.Controllers
 
                 return NoContent();
 
-            }
-            catch(Exception ex)
-            {
-                _logger.LogError(ex, $"Something Went Wrong In The {nameof(DeleteHotel)}");
-                return StatusCode(500, "Internal Server Error.Please Try Again Later");
-            }
+            
         }
 
 

@@ -1,3 +1,4 @@
+using AspNetCoreRateLimit;
 using HotelListing.Configurations;
 using HotelListing.Data;
 using HotelListing.IRepository;
@@ -42,8 +43,14 @@ namespace HotelListing
                      options.UseSqlServer(Configuration.GetConnectionString("sqlConnection"))
                 );
 
-            //configuring Identity core framework and Authentication
+            services.AddMemoryCache();
 
+            services.ConfigureRateLimiting();  //calling the method for Configuring the limit of requests that can be made to an End point
+            services.AddHttpContextAccessor();
+
+            //configure cashing
+            services.ConfigureHttpCacheHeaders();
+            //configuring Identity core framework and Authentication
             services.AddAuthentication();
             services.ConfigureIdentity(); //This method ConfigureIdentity() is in the ServiceExtentions.cs ,thats where the Identity Framework is configured
            
@@ -70,7 +77,14 @@ namespace HotelListing
             });
 
 
-            services.AddControllers().AddNewtonsoftJson(op => op.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore) ;
+            services.AddControllers(config => {
+                config.CacheProfiles.Add("120SecondsDuration", new CacheProfile
+                {
+                    Duration = 120
+                });
+            }).AddNewtonsoftJson(op => op.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore) ;
+
+            services.ConfigureVersioning(); //configure Api versioning
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline...
@@ -85,9 +99,14 @@ namespace HotelListing
             app.UseSwagger();
             app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "HotelListing v1"));
 
+            app.ConfigureExceptionHandler(); //configure global error handler
+
             app.UseHttpsRedirection();
             app.UseCors("AllowAll"); //configure Cors
 
+            app.UseResponseCaching(); //configure cashing middleware
+            app.UseHttpCacheHeaders();//configure cashing middleware
+            app.UseIpRateLimiting();//configure request limit middleware 
             app.UseRouting();
 
             app.UseAuthentication();
